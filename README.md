@@ -1,2 +1,4 @@
-# syglass_surface_to_surface_colocalization
-Python plugin for surface-to-surface colocalization
+script
+# syglass_point_to_point_colocalization
+Python script for point-to-point colocalization
+
