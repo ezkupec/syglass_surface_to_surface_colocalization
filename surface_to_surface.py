@@ -3,6 +3,8 @@ import syglass as sy
 import trimesh
 import numpy as np
 import pyvista as pv
+import os
+import shutil
 
 #              ________________________________________________              #
 #/=============|  Surface-to-Surface Colocalization Example   |=============\#
@@ -17,14 +19,16 @@ import pyvista as pv
 #\==========================================================================/#
 
 # constants: modify as needed before running the script
-EXPERIMENT_NAME = 'test2'
-PROJECT_PATH = 'C:/Users\emmak\Downloads\HighResMRI_WithMeshes\HighResMRI_WithMeshes/HighResMRISkull_wMeshes.syg'
-MESH_PATH = 'C:/Users\emmak\Downloads\HighResMRI_WithMeshes\HighResMRI_WithMeshes'
-DISTANCE_THRESHOLD = 100
+EXPERIMENT_NAME = 'default'
+PROJECT_PATH = 'C:/Users/emmak/Documents/surfacestest/surfacestest.syg'
+MESH_PATH = 'C:/Users/emmak/Documents/surfacestest'
+DISTANCE_THRESHOLD = 30
 
 if __name__ == '__main__':
     # get the project object, meshes
     project = sy.get_project(PROJECT_PATH)
+    if not os.path.exists(MESH_PATH + '/project_meshes'):
+        os.mkdir(MESH_PATH + '/project_meshes')
     mesh_names = project.impl.GetMeshNamesAndSizes(EXPERIMENT_NAME)
     voxel_dimensions = project.get_voxel_dimensions()
     pv_read_meshes = []
@@ -39,14 +43,14 @@ if __name__ == '__main__':
     # iterate through list of meshes
     for mesh_name in mesh_names:
         print('\nProcessing mesh: ' + mesh_name)
-        project.impl.ExportMeshOBJs(EXPERIMENT_NAME, mesh_name, MESH_PATH + '/' + mesh_name)
+        project.impl.ExportMeshOBJs(EXPERIMENT_NAME, mesh_name, MESH_PATH + '/project_meshes/' + mesh_name)
        
         # meshes take a second to export—here we wait for them
         while project.impl.GetMeshIOPercentage() != 100.0:
             time.sleep(0.1)
        
         # pyvista reads each mesh
-        pv_read_meshes.append(pv.read(MESH_PATH + '/' + mesh_name))
+        pv_read_meshes.append(pv.read(MESH_PATH + '/project_meshes/' + mesh_name))
         project_meshes.append(mesh_name)
 
     # compare all meshes
@@ -75,8 +79,8 @@ if __name__ == '__main__':
                 project.set_surface_color(sorted_dist[1], (0, 255, 0, 1) , EXPERIMENT_NAME)
                 blacklist_meshes.append(sorted_dist[0])
                 blacklist_meshes.append(sorted_dist[1])
-                mesh1 = trimesh.load_mesh(MESH_PATH + '/' + sorted_dist[0])
-                mesh2 = trimesh.load_mesh(MESH_PATH + '/' + sorted_dist[1])
+                mesh1 = trimesh.load_mesh(MESH_PATH + '/project_meshes/' + sorted_dist[0])
+                mesh2 = trimesh.load_mesh(MESH_PATH + '/project_meshes/' + sorted_dist[1])
                 xyz_center_points1 = mesh1.center_mass
                 zyx_center_points1 = [xyz_center_points1[2] / voxel_dimensions[0], xyz_center_points1[1] / voxel_dimensions[1], xyz_center_points1[0] / voxel_dimensions[2]]
                 xyz_center_points2 = mesh2.center_mass
@@ -94,3 +98,5 @@ if __name__ == '__main__':
             project.set_surface_color(mesh, (0, 0, 255, 1) , EXPERIMENT_NAME)
     print("Pairs: " + str(pairs))
     print("Orphaned: " + str(orphaned))
+
+    shutil.rmtree(MESH_PATH + '/project_meshes')
