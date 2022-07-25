@@ -1,4 +1,4 @@
-script
+
 # syglass_surface_to_surface_colocalization
 Contributors: Emma Kupec, Nathan Spencer
 
